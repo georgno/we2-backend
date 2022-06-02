@@ -1,0 +1,96 @@
+// Rufe alle User ab. Zu Beginn sollten keine User in der Datenbank sein.  
+### 
+http://localhost:8080/publicUser
+ 
+// Lege ersten User an, der Administrator ist 
+### 
+POST http://localhost:8080/publicUser
+Content-Type: application/json 
+
+{ 
+    "userID": "admin", 
+    "userName": "Udo Müller", 
+    "password": "123", 
+    "isAdministrator": true 
+} 
+ 
+// Rufe User mit UserID admin ab. Im Anschluss werden die Daten des Users ein
+// schließlich des gehashten Passworts geprüft. 
+### 
+POST http://localhost:8080/publicUser/getByUserID 
+Content-Type: application/json 
+ 
+{ 
+    "userID": "admin" 
+} 
+ 
+// Lege zweiten User an. Prüfe UserID und UserName, ob die Angaben korrekt sind. 
+### 
+POST http://localhost:8080/publicUser 
+Content-Type: application/json 
+ 
+{ 
+    "userID": "manfred", 
+    "userName": "Manfred Mustermann", 
+    "password": "asdf" 
+}
+
+// Ändere beim zweiten User den User-Name. Zur Selektion des Users verwende die userID. 
+### 
+PUT http://localhost:8080/publicUser 
+Content-Type: application/json 
+ 
+{ 
+    "userID": "manfred", 
+    "userName": "Manfred Müller" 
+} 
+ 
+// Rufe alle User ab. Es sollten 2 User zurückgegeben werden. 
+### 
+http://localhost:8080/publicUser
+
+
+
+// EIGENE TESTS
+
+// Erstelle einen neuen User
+###
+POST http://localhost:8080/publicUser
+Content-Type: application/json 
+
+{ 
+    "userID": "neuerUser", 
+    "userName": "Neuer User", 
+    "password": "123", 
+    "isAdministrator": true 
+} 
+
+// Lösche den neuen User
+###
+DELETE http://localhost:8080/publicUser
+Content-Type: application/json
+
+{
+    "userID": "neuerUser"
+}
+
+// Ändere beim zweiten User das Passwort. 
+### 
+PUT http://localhost:8080/publicUser 
+Content-Type: application/json 
+ 
+{ 
+    "userID": "manfred", 
+    "userName": "Moni Müller",
+    "password": "foo2"
+}
+
+// Update nicht vorhandenen User
+###
+PUT http://localhost:8080/publicUser
+Content-Type: application/json
+
+{
+    "userID": "idontexist222",
+    "userName": "foo"
+}

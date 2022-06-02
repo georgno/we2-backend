@@ -1,0 +1,182 @@
+// Re-test Meilenstein 1, es sollte der Standard-Admin in der Datenbank sein
+###
+https://localhost/publicUser
+
+
+// Login mit Basic Authentication mit korrekten Credentials admin:123
+###
+# @name loginAdminCorrect
+POST https://localhost/authenticate
+Authorization: Basic YWRtaW46MTIz
+
+// Login mit Basic Authentication mit falschen Credentials
+###
+POST https://localhost/authenticate
+Authorization: Basic admin:1234
+
+@adminToken = {{loginAdminCorrect.response.headers.Authorization}}
+
+### Auflisten aller Nutzer ohne Token
+https://localhost/user
+
+### Auflisten aller Nutzer mit Token(Admin)
+https://localhost/user
+Authorization: {{adminToken}}
+
+// Lege zweiten User an
+###
+POST https://localhost/user
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+    "userID": "manfred",
+    "userName": "Manfred Mustermann",
+    "password": "asdf"
+}
+
+###
+PUT https://localhost/user
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+    "userID": "manfred",
+    "userName": "Manfred Müller"
+}
+
+### Auflisten aller Nutzer mit Token(Admin)
+https://localhost/user
+Authorization: {{adminToken}}
+
+//
+// Forum Tests
+//
+### Auflisten aller Foren ohne Token
+https://localhost/forum
+
+// Lege ein ersten Forum an, der Administrator ist owner
+###
+# @name createForumRequest
+POST https://localhost/forum
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+    "forumName": "Mein erstes Forum",
+    "forumDescription": "Das ist ein erstes Forum, das ich im Rahmen der Tests angelegt habe"
+}
+
+###
+@forumID = {{createForumRequest.response.body._id}}
+
+### Auflisten aller Foren ohne Token, nun sollte es ein Forum geben
+https://localhost/forum
+
+### Foren für admin auflisten (es sollte 1 sein)
+https://localhost/forum/getByOwnerID
+Authorization: {{adminToken}}
+
+### Ändere die forumDescription in dem existierenden Forum
+PUT https://localhost/forum
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+    "_id": "{{forumID}}",
+    "forumDescription": "Das ist der neue Text"
+}
+
+### Auflisten der Foren des Administrators
+https://localhost/forum/getByOwnerID
+Authorization: {{adminToken}}
+
+// Foren für Manfred abrufen. Dafür erst einloggen.
+###
+###
+# @name loginManfred
+POST https://localhost/authenticate
+Authorization: Basic manfred:asdf
+
+@manfredToken = {{loginManfred.response.headers.Authorization}}
+
+###
+### Foren für admin auflisten (es sollte 1 sein)
+https://localhost/forum/getByOwnerID
+Authorization: {{manfredToken}}
+
+###
+# @name createForumRequest
+POST https://localhost/forum
+Authorization: {{manfredToken}}
+Content-Type: application/json
+
+{
+    "forumName": "Manfreds erstes Forum",
+    "forumDescription": "Das ist der Text von Manfred"
+}
+
+### Auflisten der Foren für den User manfred, diese Funktion sollte nur der Admin nutzen
+POST https://localhost/forum/getByOwnerID
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+    "ownerID" : "manfred"
+}
+
+### Lösche Forum
+DELETE  https://localhost/forum
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+    "_id": "{{forumID}}"
+}
+
+### Auflisten aller Forumnachrichten ohne Token
+https://localhost/forumMessage
+
+###
+# @name createForumMessageRequest
+POST https://localhost/forumMessage
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+    "forumID": "{{forumID}}",
+    "messageTitle": "Meine erste Forumnachricht",
+    "messageText": "Das wollte ich nur kurz in das Forum schreiben."
+}
+
+###
+// Anlegen mit falscher Forum ID
+POST https://localhost/forumMessage
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+    "forumID": "Gibt es nicht",
+    "messageTitle": "Meine erste Forumnachricht",
+    "messageText": "Das wollte ich nur kurz in das Forum schreiben."
+}
+
+### Auflisten aller Forumnachrichten für Forum
+POST https://localhost/forumMessage/getByForumID
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+    "forumID": "{{forumID}}"
+}
+
+### Löschen einer Forumnachrichten
+DELETE  https://localhost/forumMessage
+Authorization: {{adminToken}}
+Content-Type: application/json
+
+{
+    "_id": "6196856afcf7d42fb01a1691"
+}
+
+

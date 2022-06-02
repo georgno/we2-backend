@@ -1,0 +1,276 @@
+// Rufe alle User ab. Zu Beginn sollten keine User in der Datenbank sein.  
+### 
+https://localhost:443/publicUser
+ 
+// Lege ersten User an, der Administrator ist 
+### 
+POST https://localhost:443/publicUser
+Content-Type: application/json 
+
+{ 
+    "userID": "admin", 
+    "userName": "Udo Müller", 
+    "password": "123", 
+    "isAdministrator": true 
+} 
+ 
+// Rufe User mit UserID admin ab. Im Anschluss werden die Daten des Users ein
+// schließlich des gehashten Passworts geprüft. 
+### 
+POST https://localhost:443/publicUser/getByUserID 
+Content-Type: application/json 
+ 
+{ 
+    "userID": "admin" 
+} 
+ 
+// Lege zweiten User an. Prüfe UserID und UserName, ob die Angaben korrekt sind. 
+### 
+POST https://localhost:443/publicUser 
+Content-Type: application/json 
+ 
+{ 
+    "userID": "manfred", 
+    "userName": "Manfred Mustermann", 
+    "password": "asdf" 
+}
+
+// Ändere beim zweiten User den User-Name. Zur Selektion des Users verwende die userID. 
+### 
+PUT https://localhost:443/publicUser 
+Content-Type: application/json 
+ 
+{ 
+    "userID": "manfred", 
+    "userName": "Manfred Müller" 
+} 
+ 
+// Rufe alle User ab. Es sollten 2 User zurückgegeben werden. 
+### 
+https://localhost:443/publicUser
+
+
+
+// EIGENE TESTS
+
+// Erstelle einen neuen User
+###
+POST https://localhost:443/publicUser
+Content-Type: application/json 
+
+{ 
+    "userID": "neuerUser", 
+    "userName": "Neuer User", 
+    "password": "123", 
+    "isAdministrator": true 
+} 
+
+// Lösche den neuen User
+###
+DELETE https://localhost:443/publicUser
+Content-Type: application/json
+
+{
+    "userID": "neuerUser"
+}
+
+// Ändere beim zweiten User das Passwort. 
+### 
+PUT https://localhost:443/publicUser 
+Content-Type: application/json 
+ 
+{ 
+    "userID": "manfred", 
+    "userName": "Moni Müller",
+    "password": "foo2"
+}
+
+// Update nicht vorhandenen User
+###
+PUT https://localhost:443/publicUser
+Content-Type: application/json
+
+{
+    "userID": "idontexist222",
+    "userName": "foo"
+}
+
+// Re-test Meilenstein 1, es sollte der Standard-Admin in der Datenbank sein 
+### 
+https://localhost:443/publicUser 
+ 
+// Login mit Basic Authentication mit korrekten Credentials admin:123 
+### 
+# @name loginAdminCorrect 
+POST https://localhost:443/authenticate 
+Authorization: Basic YWRtaW46MTIz 
+ 
+// Login mit Basic Authentication mit falschen Credentials 
+### 
+POST https://localhost:443/authenticate 
+Authorization: Basic admin:1234 
+ 
+@adminToken = {{loginAdminCorrect.response.headers.Authorization}} 
+
+// Login mit Basic Authentication mit nicht vorhandenem Username 
+### 
+POST https://localhost:443/authenticate 
+Authorization: Basic badmin:1234 
+ 
+@adminToken = {{loginAdminCorrect.response.headers.Authorization}} 
+
+### Auflisten aller Nutzer ohne Token 
+https://localhost:443/user 
+ 
+### Auflisten aller Nutzer mit Token(Admin) 
+https://localhost:443/user 
+Authorization: {{adminToken}} 
+ 
+### Auflisten aller Nutzer mit falschem Token (Badmin)
+https://localhost:443/user 
+Authorization: Bearer 1234s
+ 
+### Auflisten aller Foren ohne Token 
+https://localhost:443/forum 
+ 
+// Lege ein ersten Forum an, der Administrator ist owner 
+### 
+POST https://localhost:443/forum 
+Authorization: {{adminToken}} 
+Content-Type: application/json 
+ 
+{ 
+    "forumName": "Mein erstes Forum", 
+    "forumDescription": "Das ist ein erstes Forum, das ich im Rahmen der Tests angelegt habe" 
+}
+ 
+### Auflisten aller Foren ohne Token, nun sollte es ein Forum geben 
+https://localhost:443/forum 
+
+### Ändere die forumDescription in dem existierenden Forum 
+PUT https://localhost:443/forum 
+Authorization: {{adminToken}} 
+Content-Type: application/json 
+ 
+{ 
+    "_id": "618da2c43e966a18b9f4d797", 
+    "forumDescription": "Das ist der neueeeeee Text" 
+} 
+ 
+### Auflisten der Foren des Administrators 
+https://localhost:443/forum/getByOwnerID 
+Authorization: {{adminToken}} 
+ 
+### Auflisten der Foren für den User manfred, diese Funktion sollte nur der Admin nutzen 
+POST https://localhost:443/forum/getByOwnerID 
+Authorization: {{adminToken}} 
+Content-Type: application/json 
+ 
+{ 
+    "ownerID" : "manfred" 
+}
+
+### Delete Forum das existiert
+DELETE https://localhost:443/forum
+Authorization: {{adminToken}} 
+Content-Type: application/json 
+ 
+{ 
+    "forumName": "Mein zweites Forum"  
+} 
+
+### Delete Forum das nicht existiert
+DELETE https://localhost:443/forum
+Authorization: {{adminToken}} 
+Content-Type: application/json 
+ 
+{ 
+    "forumName": "Mein zweites nicht existentes Forum"  
+} 
+
+// Login mit Basic Authentication mit korrekten Credentials admin:123 
+### 
+# @name loginAdminCorrect 
+POST https://localhost:443/authenticate 
+Authorization: Basic YWRtaW46MTIz 
+
+// Lege ein zweites Forum an, der Administrator ist owner 
+### 
+POST https://localhost:443/forum 
+Authorization: {{adminToken}} 
+Content-Type: application/json 
+ 
+{ 
+    "forumName": "Mein zweites Forum", 
+    "forumDescription": "Das ist ein erstes Forum, das ich im Rahmen der Tests angelegt habe" 
+}
+ 
+
+### Create ForumMessage
+POST https://localhost:443/forumMessage
+Authorization: {{adminToken}} 
+Content-Type: application/json
+
+{
+    "forumID": "619ea721bd505a8c652e33c9",
+    "messageTitle" : "geiler Titel",
+    "messageText" : "cooler Text"
+}
+
+### Show ForumMessages
+https://localhost:443/forumMessage
+
+
+### Show only ForumMessages from one Forum . Should be empty
+POST https://localhost:443/forumMessage/getByForumID
+Content-Type: application/json
+
+{
+    "forumID": "619ea721bd505a8c652e33c9"
+}
+
+### Create ForumMessage
+POST https://localhost:443/forumMessage
+Authorization: {{adminToken}} 
+Content-Type: application/json
+
+{
+    "forumID": "619ea721bd505a8c652e33c9",
+    "messageTitle" : "geiler neuer Titel",
+    "messageText" : "cooler neuer Text"
+}
+
+### Show only ForumMessages from one Forum . Should not be empty
+POST https://localhost:443/forumMessage/getByForumID
+Content-Type: application/json
+
+{
+    "forumID": "619e9919c307f06e5d4eb710"
+}
+
+### Show only ForumMessages from one User
+POST https://localhost:443/forumMessage/getByAuthorID
+Content-Type: application/json
+
+{
+    "authorID": "admin"
+}
+
+### Update Message
+PUT https://localhost:443/forumMessage
+Authorization: {{adminToken}} 
+Content-Type: application/json 
+ 
+{ 
+    "_id": "619ea746bd505a8c652e33d2", 
+    "messageText": "Das ist der neue Text" 
+} 
+
+### delete Message
+DELETE https://localhost:443/forumMessage
+Authorization: {{adminToken}} 
+Content-Type: application/json 
+ 
+{ 
+    "_id": "619ea746bd505a8c652e33d2"  
+} 

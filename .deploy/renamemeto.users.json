@@ -1,0 +1,8 @@
+{
+    "users": [{ 
+        "userID": "CHANGE", 
+        "userName": "YOUR", 
+        "password": "DATA LIKE YOU WANT", 
+        "isAdministrator": true 
+    } ]
+}
