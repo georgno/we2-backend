@@ -2,7 +2,7 @@
 
 This is my first project with MongoDB and Nodejs Express. I worked on this project in the Semester 21/22.
 
-This is supposed to be the backend for a Community Page that uses React -> https://github.com/georgno/we2-app
+This is supposed to be the backend for a Community Page that uses React -> https://github.com/georgno/we2-react
 
 This repo is just to have public proof of what I worked on. 
 
