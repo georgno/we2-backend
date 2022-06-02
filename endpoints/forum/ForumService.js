@@ -64,8 +64,8 @@ async function getForumsByUserID(body, callback) {
 }
 
 async function getOwnForums(body, callback) {
-  var id = body.forumID;
-  const forum = await Forum.findOne({ forumID: id });
+  var id = body._id;
+  const forum = await Forum.findOne({ _id: id });
   if (forum) {
     callback(null, forum);
     console.log("Forum found")
@@ -78,12 +78,12 @@ async function getOwnForums(body, callback) {
 // UPDATE
 
 async function updateForum(newData, callback) {
-  var id = newData.userID;
+  var id = newData._id;
   console.log(newData);
   delete newData["_id"];
-  if (Forum.exists({ forumID: id })) {
+  if (Forum.exists({ _id: id })) {
     Forum.findOneAndUpdate(
-      { forumID: id },
+      { _id: id },
       newData,
       { returnDocument: "after" },
       (err, doc) => {
